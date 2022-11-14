@@ -1,13 +1,26 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar'
+import { StyleSheet, Text, View } from 'react-native'
+import { useFonts } from 'expo-font'
+import { customFonts } from './src/config/FontsConfig'
+import { Provider } from 'react-native-paper'
+import { theme } from './src/config/ThemeConfig'
+import MainRoute from './src/navigation/MainRoute'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const query = new QueryClient()
 
 export default function App() {
+  let [fontsLoaded] = useFonts(customFonts)
+
+  if (!fontsLoaded) return null
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <QueryClientProvider client={query}>
+      <Provider theme={theme}>
+        <MainRoute />
+      </Provider>
+    </QueryClientProvider>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -17,4 +30,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+})
