@@ -8,6 +8,8 @@ import Setting from '../screens/Setting'
 import DrawerContents from '../components/drawer_contents/DrawerContents'
 import { BE_MEDIUM } from '../constants/FontConstant'
 import { IconButton } from 'react-native-paper'
+import { AntDesign } from '@expo/vector-icons'; 
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 type Props = {}
 
@@ -59,6 +61,11 @@ const DrawerRoute = (props: any) => {
               onPress={() => navigation.goBack()}
             />
           ),
+          headerRight: () =>(
+            <TouchableOpacity onPress={() => navigation.push('AddContact')} style={{marginRight:20}}>
+              <AntDesign name="plus" size={24} color="black"/>               
+            </TouchableOpacity>
+          )
         })}
       />
       <Drawer.Screen
@@ -89,6 +96,9 @@ const DrawerRoute = (props: any) => {
               onPress={() => navigation.goBack()}
             />
           ),
+          headerRight:() =>(
+            <Text style={{fontSize:17, marginRight:15, fontWeight:'bold'}}>Edit</Text>
+          )
         })}
       />
     </Drawer.Navigator>

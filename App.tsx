@@ -6,6 +6,8 @@ import { Provider } from 'react-native-paper'
 import { theme } from './src/config/ThemeConfig'
 import MainRoute from './src/navigation/MainRoute'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import Register from './src/screens/Register'
+import Contacts from './src/screens/Contacts'
 
 const query = new QueryClient()
 
@@ -20,6 +22,7 @@ export default function App() {
         <MainRoute />
       </Provider>
     </QueryClientProvider>
+    // <Contacts/>
   )
 }
 

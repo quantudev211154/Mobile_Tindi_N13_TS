@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import ConversationContent from '../components/conversation/ConversationContent'
 
 type Props = {}
 
 const ConversationList = (props: Props) => {
   return (
     <View>
-      <Text>ConversationList</Text>
+      <ConversationContent/>
     </View>
   )
 }
