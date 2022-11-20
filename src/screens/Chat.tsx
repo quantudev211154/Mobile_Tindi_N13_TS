@@ -3,11 +3,14 @@ import React from 'react'
 import ChatHeader from '../components/chat/ChatHeader'
 import ChatContent from '../components/chat/ChatContent'
 
-export default function Chat() {
+type Props = {
+  navigation: any
+}
+
+export default function Chat({ navigation }: Props) {
   return (
-    <View>
-        <ChatHeader />
-        <ChatContent/>
+    <View className='flex-1'>
+      <ChatContent navigation={navigation} />
     </View>
   )
 }

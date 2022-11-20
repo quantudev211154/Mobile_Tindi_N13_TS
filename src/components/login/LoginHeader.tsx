@@ -7,7 +7,10 @@ type Props = {}
 const LoginHeader = (props: Props) => {
   return (
     <View className='mb-10'>
-      <Text style={{ fontFamily: BE_MEDIUM }} className='text-3xl uppercase'>
+      <Text
+        style={{ fontFamily: BE_MEDIUM }}
+        className='text-3xl text-center uppercase'
+      >
         <Text className='text-slate-600'>Đăng nhập với</Text>
         <Text className='text-blue-600'> Tindi</Text>
       </Text>

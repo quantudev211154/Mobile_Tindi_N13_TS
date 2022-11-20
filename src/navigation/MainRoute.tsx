@@ -7,13 +7,18 @@ import Register from '../screens/Register'
 import ForgotPwd from '../screens/ForgotPwd'
 import DrawerRoute from './DrawerRoute'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'
 import Contacts from '../screens/Contacts'
 import AddContact from '../screens/AddContact'
 import Chat from '../screens/Chat'
+import {
+  DANG_KY,
+  DANG_NHAP,
+  MAN_HINH_CHINH,
+  QUEN_MAT_KHAU,
+} from '../constants/RoutesName.constant'
 
 type Props = {}
-
 
 const RootStack = createNativeStackNavigator()
 
@@ -21,15 +26,15 @@ const MainRoute = (props: Props) => {
   return (
     <NavigationContainer>
       <RootStack.Navigator
-        initialRouteName='Main'
+        initialRouteName={MAN_HINH_CHINH}
         screenOptions={{ headerShown: false }}
       >
-        <RootStack.Screen name='Đăng nhập' component={Login} />
-        <RootStack.Screen name='Đăng ký' component={Register} />
-        <RootStack.Screen name='Quên mật khẩu' component={ForgotPwd} />
-        <RootStack.Screen name='AddContact' component={AddContact} />
-        <RootStack.Screen name='Chat' component={Chat} />
-        <RootStack.Screen name='Main' component={DrawerRoute} />
+        <RootStack.Screen name={DANG_NHAP} component={Login} />
+        <RootStack.Screen name={DANG_KY} component={Register} />
+        <RootStack.Screen name={QUEN_MAT_KHAU} component={ForgotPwd} />
+        {/* <RootStack.Screen name='AddContact' component={AddContact} /> */}
+        {/* <RootStack.Screen name='Chat' component={Chat} /> */}
+        <RootStack.Screen name={MAN_HINH_CHINH} component={DrawerRoute} />
       </RootStack.Navigator>
     </NavigationContainer>
   )

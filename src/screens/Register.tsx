@@ -14,7 +14,7 @@ import RegisterFooter from '../components/register/RegisterFooter'
 
 type Props = {}
 
-const Register = (props: Props) => {
+const Register = (props: any) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View className='relative w-full h-full flex flex-col'>
@@ -23,10 +23,10 @@ const Register = (props: Props) => {
           resizeMode='cover'
           className='flex-1 h-full'
         />
-        <View className='w-full h-[60%] bg-white flex-1 justify-center items-center px-[20] pt-[60] absolute bottom-0 left-0 rounded-tl-3xl rounded-tr-3xl'>
+        <View className='w-full min-h-[60%] bg-white flex-1 justify-center items-center px-[20] pt-[60] absolute bottom-0 left-0 rounded-tl-3xl rounded-tr-3xl'>
           <RegisterHeader />
-          <RegisterForm/>
-          <RegisterFooter/>
+          <RegisterForm />
+          <RegisterFooter navigation={props.navigation} />
         </View>
       </View>
     </TouchableWithoutFeedback>
