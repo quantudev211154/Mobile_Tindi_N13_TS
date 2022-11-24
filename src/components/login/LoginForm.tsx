@@ -19,18 +19,17 @@ const initialValue: ILoginForm = {
 
 const LoginForm = (props: any) => {
   const onFormSubmit = async (values: ILoginForm) => {
-    // try {
-    //   const formData = new FormData()
-    //   formData.append('phone', values.phone)
-    //   formData.append('password', values.pwd)
+    try {
+      const formData = new FormData()
+      formData.append('phone', values.phone)
+      formData.append('password', values.pwd)
 
-    //   const rs = await login(values.phone, values.pwd)
+      const rs = await login(values.phone, values.pwd)
 
-    //   console.log(rs)
-    // } catch (error) {
-    //   console.log(error)
-    // }
-    props.navigation.push('Main')
+      props.navigation.push('Main')
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (

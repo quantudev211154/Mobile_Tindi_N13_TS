@@ -26,14 +26,12 @@ const MainRoute = (props: Props) => {
   return (
     <NavigationContainer>
       <RootStack.Navigator
-        initialRouteName={MAN_HINH_CHINH}
+        initialRouteName={DANG_NHAP}
         screenOptions={{ headerShown: false }}
       >
         <RootStack.Screen name={DANG_NHAP} component={Login} />
         <RootStack.Screen name={DANG_KY} component={Register} />
         <RootStack.Screen name={QUEN_MAT_KHAU} component={ForgotPwd} />
-        {/* <RootStack.Screen name='AddContact' component={AddContact} /> */}
-        {/* <RootStack.Screen name='Chat' component={Chat} /> */}
         <RootStack.Screen name={MAN_HINH_CHINH} component={DrawerRoute} />
       </RootStack.Navigator>
     </NavigationContainer>
