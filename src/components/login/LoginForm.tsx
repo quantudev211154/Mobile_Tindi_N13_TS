@@ -6,7 +6,13 @@ import MyButton from '../core/MyButton'
 import { BE_MEDIUM } from '../../constants/FontConstant'
 import * as yup from 'yup'
 import { login } from '../../apis/Auth.api'
-
+import {
+  DANG_KY,
+  DANG_NHAP,
+  MAN_HINH_CHINH,
+  QUEN_MAT_KHAU,
+  THEM_DANH_BA
+} from '../../constants/RoutesName.constant'
 interface ILoginForm {
   phone: string
   pwd: string
@@ -25,8 +31,7 @@ const LoginForm = (props: any) => {
       formData.append('password', values.pwd)
 
       const rs = await login(values.phone, values.pwd)
-
-      props.navigation.push('Main')
+      props.navigation.push(MAN_HINH_CHINH)
     } catch (error) {
       console.log(error)
     }

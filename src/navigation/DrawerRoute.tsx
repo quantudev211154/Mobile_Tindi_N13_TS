@@ -18,6 +18,7 @@ import {
   DANH_SACH_TIN_NHAN,
   TAO_NHOM,
   TIN_NHAN,
+  THEM_DANH_BA
 } from '../constants/RoutesName.constant'
 import Logout from '../screens/Logout'
 
@@ -108,7 +109,7 @@ const DrawerRoute = (props: any) => {
           ),
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => navigation.push('AddContact')}
+              onPress={() => navigation.push(THEM_DANH_BA)}
               style={{ marginRight: 20 }}
             >
               <AntDesign name='plus' size={24} color='black' />

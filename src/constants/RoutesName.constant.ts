@@ -15,3 +15,5 @@ export const DANH_BA = 'Danh bạ'
 export const TAO_NHOM = 'Tạo nhóm'
 export const CAI_DAT = 'Cài đặt'
 export const DANG_XUAT = 'Đăng xuất'
+export const THEM_DANH_BA = 'Thêm danh bạ'
+
