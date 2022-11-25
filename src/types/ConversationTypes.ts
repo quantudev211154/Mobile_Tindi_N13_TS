@@ -1,5 +1,9 @@
 import { MessageType } from './MessageTypes'
-import { ParticipantType } from './ParticipantTypes'
+import {
+  ParticipantRoleEnum,
+  ParticipantStatusEnum,
+  ParticipantType,
+} from './ParticipantTypes'
 import { UserType } from './UserTypes'
 
 export type ConversationType = {
@@ -19,6 +23,7 @@ export type ConversationControlType = {
   currentChat: ConversationType | null
   conversationList: ConversationType[]
   isLoadingChatList: boolean
+  findConverKeyword: string
 }
 
 export enum ConversationStatusEnum {
@@ -46,5 +51,51 @@ export type AddNewConversationPayloadType = {
   title: string
   avatar: string
   user: UserType
-  usersId: [number, number]
+  phones: string[]
+}
+
+export type UpdateConversationPayloadType = {
+  formData: FormData
+  conversationId: number
+  users: UserType[]
+}
+
+export type RemoveMemberPayload = {
+  adminId: number
+  participantId: number
+}
+
+export type GrantPermissionPayloadType = {
+  adminId: number
+  participantId: number
+  role: ParticipantRoleEnum
+}
+
+export type AddMultiMemberPayloadType = {
+  conversationId: number
+  conversation: ConversationType
+  phones: string[]
+  status: ParticipantStatusEnum
+  createdAt: string
+}
+
+export type AddMultiMemberServerPayloadType = Omit<
+  AddMultiMemberPayloadType,
+  'conversation'
+>
+
+export type AddMultiMemberReturnType = {
+  converId: number
+  newParticipants: ParticipantType[]
+}
+
+export type OutGroupPayloadType = {
+  converId: number
+  participantId: number
+}
+
+export type UpdateStatusOfParticipantPayloadType = {
+  adminId: number
+  participantId: number
+  status: ParticipantStatusEnum
 }

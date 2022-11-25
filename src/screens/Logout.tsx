@@ -7,12 +7,17 @@ import {
   MAN_HINH_CHINH,
   TIN_NHAN,
 } from '../constants/RoutesName.constant'
+import { authActions } from '../redux/slice/AuthSlice'
+import { useAppDispatch } from '../redux/redux_hook'
 
 type Props = {
   navigation: any
 }
 
 const Logout = ({ navigation }: Props) => {
+  const { logout } = authActions
+  const dispatch = useAppDispatch()
+
   return (
     <View className='flex-1 relative bg-gray-400'>
       <View className='w-full rounded-lg p-5 bg-white absolute bottom-0'>
@@ -26,6 +31,7 @@ const Logout = ({ navigation }: Props) => {
           <MyButton
             title='Đăng xuất'
             onPress={() => {
+              dispatch(logout())
               navigation.navigate(DANG_NHAP)
             }}
             classNameStyle='bg-pink-700 w-[48%] py-3 rounded-lg'

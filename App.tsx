@@ -8,8 +8,10 @@ import MainRoute from './src/navigation/MainRoute'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Register from './src/screens/Register'
 import Contacts from './src/screens/Contacts'
+import { Provider as ReduxProvider } from 'react-redux'
+import { store } from './src/redux/redux_store'
 
-const query = new QueryClient()
+const queryClient = new QueryClient()
 
 export default function App() {
   let [fontsLoaded] = useFonts(customFonts)
@@ -17,12 +19,13 @@ export default function App() {
   if (!fontsLoaded) return null
 
   return (
-    <QueryClientProvider client={query}>
-      <Provider theme={theme}>
-        <MainRoute />
-      </Provider>
-    </QueryClientProvider>
-    // <Contacts/>
+    <ReduxProvider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <Provider theme={theme}>
+          <MainRoute />
+        </Provider>
+      </QueryClientProvider>
+    </ReduxProvider>
   )
 }
 

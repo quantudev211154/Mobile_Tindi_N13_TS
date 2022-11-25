@@ -10,6 +10,7 @@ type Props = {
   onPress: Function
   classNameStyle: string
   textColor?: string
+  disable?: boolean
 }
 
 const MyButton = ({

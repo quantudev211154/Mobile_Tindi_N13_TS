@@ -1,54 +1,66 @@
-import { StyleSheet, Text, View, ImageBackground } from 'react-native'
-import React, { useState, useCallback, useEffect } from 'react'
-import { BE_MEDIUM, BE_REGULAR } from '../../constants/FontConstant'
-import { TextInput } from 'react-native-paper'
-import { Avatar } from '@react-native-material/core'
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler'
-import { AntDesign } from '@expo/vector-icons'
-import { IconButton } from 'react-native-paper'
-import { useNavigation } from '@react-navigation/native'
-import LoginBgr from '../../assets/images/login-bgr.jpg'
-import { GiftedChat } from 'react-native-gifted-chat'
+import { View } from 'react-native'
+import React, { useRef } from 'react'
+import { useAppDispatch, useAppSelector } from '../../redux/redux_hook'
+import { conversationsControlState } from '../../redux/slice/ConversationSlice'
+import { useQuery } from '@tanstack/react-query'
+import { loadMessages } from '../../apis/Message.api'
+import Message from '../message/Message'
+import { ScrollView } from 'react-native-gesture-handler'
+import { conversationDetailActions } from '../../apis/ConversationDetail'
+import { ActivityIndicator, Text } from 'react-native-paper'
+import { BE_MEDIUM } from '../../constants/FontConstant'
+import { conversationDetailState } from './../../apis/ConversationDetail'
 
 type Props = {
   navigation: any
 }
 
 export default function ChatContent({ navigation }: Props) {
-  const imgUrl = require('../../assets/images/login-bgr.jpg')
-  const [messages, setMessages] = useState([])
+  const { currentChat } = useAppSelector(conversationsControlState)
+  const { messageList } = useAppSelector(conversationDetailState)
+  const dispatch = useAppDispatch()
+  const { setMessageList } = conversationDetailActions
+  const scrollViewRef = useRef<ScrollView>(null)
 
-  const onSend = useCallback((messages = []) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
+  const { data, isLoading, isSuccess } = useQuery({
+    queryKey: [currentChat],
+    queryFn: () => currentChat && loadMessages(currentChat.id),
+  })
+
+  if (isLoading) {
+    return (
+      <View className='flex-1 bg-gray-200 flex justify-center items-center'>
+        <View>
+          <ActivityIndicator size={'large'} animating={true} color='#517da2' />
+          <Text
+            style={{ fontFamily: BE_MEDIUM }}
+            className='italic text-md mt-3'
+          >
+            Đợi tí nhé...
+          </Text>
+        </View>
+      </View>
     )
-  }, [])
+  }
+
+  if (isSuccess && data) {
+    if (messageList.length === 0) {
+      dispatch(setMessageList(data.data))
+    }
+  }
 
   return (
-    <View className='flex-1'>
-      <GiftedChat
-        messages={messages}
-        onSend={(messages) => onSend(messages)}
-        user={{
-          _id: 1,
-        }}
-      />
-    </View>
+    <ScrollView
+      ref={scrollViewRef}
+      onContentSizeChange={() => {
+        scrollViewRef.current &&
+          scrollViewRef.current.scrollToEnd({ animated: true })
+      }}
+      className='flex-1 px-2 bg-gray-200'
+    >
+      {messageList.map((message) => (
+        <Message key={message.id} message={message} />
+      ))}
+    </ScrollView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 50,
-    flexDirection: 'row',
-    backgroundColor: '#BCECF3',
-    width: '100%',
-    height: '100%',
-  },
-  image: {
-    flex: 1,
-    // justifyContent: "center",
-    width: 500,
-    height: 1000,
-  },
-})

@@ -11,8 +11,16 @@ import {
   DANG_NHAP,
   MAN_HINH_CHINH,
   QUEN_MAT_KHAU,
-  THEM_DANH_BA
+  THEM_DANH_BA,
 } from '../../constants/RoutesName.constant'
+import { useMutation } from '@tanstack/react-query'
+import FormErrorDisplay from '../core/FormErrorDisplay'
+import { MySocket } from '../../services/TindiSocket'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { LOCAL_REFRESH_TOKEN_NAME } from '../../constants/AuthConstant'
+import { JWT } from '../../utils/JWT'
+import { authActions } from '../../redux/slice/AuthSlice'
+import { useAppDispatch } from '../../redux/redux_hook'
 interface ILoginForm {
   phone: string
   pwd: string
@@ -24,17 +32,32 @@ const initialValue: ILoginForm = {
 }
 
 const LoginForm = (props: any) => {
-  const onFormSubmit = async (values: ILoginForm) => {
-    try {
-      const formData = new FormData()
-      formData.append('phone', values.phone)
-      formData.append('password', values.pwd)
+  const { loginFullfilled, loginRejected } = authActions
+  const dispatch = useAppDispatch()
 
-      const rs = await login(values.phone, values.pwd)
-      props.navigation.push(MAN_HINH_CHINH)
-    } catch (error) {
-      console.log(error)
-    }
+  const loginMutation = useMutation(login, {
+    onSuccess: async ({ data }) => {
+      try {
+        dispatch(loginFullfilled(data))
+
+        JWT.setToken(data.accessToken)
+        await AsyncStorage.setItem(LOCAL_REFRESH_TOKEN_NAME, data.refreshToken)
+        MySocket.initTindiSocket(data.userId)
+        props.navigation.push(MAN_HINH_CHINH)
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    onError: () => {
+      dispatch(loginRejected())
+    },
+  })
+
+  const onFormSubmit = (values: ILoginForm) => {
+    loginMutation.mutate({
+      phone: values.phone,
+      password: values.pwd,
+    })
   }
 
   return (
@@ -52,7 +75,7 @@ const LoginForm = (props: any) => {
         pwd: yup.string().required('Đừng để trống mật khẩu'),
       })}
     >
-      {({ handleChange, handleBlur, handleSubmit, values }) => (
+      {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
         <View className='w-full pb-5'>
           <TextInput
             style={styles.textInput}
@@ -64,6 +87,7 @@ const LoginForm = (props: any) => {
             onChangeText={handleChange('phone')}
             value={values.phone}
           />
+          <FormErrorDisplay msg={errors.phone} />
           <TextInput
             style={styles.textInput}
             label='Mật khẩu'
@@ -72,10 +96,16 @@ const LoginForm = (props: any) => {
             onChangeText={handleChange('pwd')}
             value={values.pwd}
           />
+          <FormErrorDisplay msg={errors.pwd} />
           <View className='mt-2'>
             <MyButton
-              title='Đăng nhập'
-              classNameStyle='bg-blue-600 py-4 rounded-lg'
+              title={
+                loginMutation.isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'
+              }
+              classNameStyle={'py-4 rounded-lg'.concat(
+                ' ',
+                loginMutation.isLoading ? 'bg-gray-400' : 'bg-blue-600'
+              )}
               onPress={() => {
                 handleSubmit()
               }}

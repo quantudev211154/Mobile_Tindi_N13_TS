@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import ConversationList from '../screens/ConversationList'
 import Contacts from '../screens/Contacts'
@@ -7,7 +7,7 @@ import NewGroup from '../screens/NewGroup'
 import Setting from '../screens/Setting'
 import DrawerContents from '../components/drawer_contents/DrawerContents'
 import { BE_MEDIUM } from '../constants/FontConstant'
-import { IconButton } from 'react-native-paper'
+import { ActivityIndicator, IconButton } from 'react-native-paper'
 import { AntDesign } from '@expo/vector-icons'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import Chat from '../screens/Chat'
@@ -18,16 +18,107 @@ import {
   DANH_SACH_TIN_NHAN,
   TAO_NHOM,
   TIN_NHAN,
-  THEM_DANH_BA
+  THEM_DANH_BA,
+  DANG_NHAP,
 } from '../constants/RoutesName.constant'
 import Logout from '../screens/Logout'
+import { useAppDispatch, useAppSelector } from '../redux/redux_hook'
+import { authActions, authState } from '../redux/slice/AuthSlice'
+import { CheckAuthPayload } from '../types/AuthTypes'
+import { JWT } from '../utils/JWT'
+import { checkAuth } from '../redux/thunks/AuthThunk'
+import {
+  conversationActions,
+  conversationsControlState,
+} from '../redux/slice/ConversationSlice'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { loadConversationsListByCurrentUserId } from '../apis/Conversation.api'
+import { ConversationTypeEnum } from '../types/ConversationTypes'
+import { getTeammateInSingleConversation } from '../utils/ConversationUtils'
+import GroupAvatar from '../components/core/GroupAvatar'
+import UserAvatar from '../components/core/UserAvatar'
+import { ParticipantType } from '../types/ParticipantTypes'
 
 type Props = {}
+
+type InfoOfCurrentChatType = {
+  title: string
+  avatar: JSX.Element
+}
 
 const Drawer = createDrawerNavigator()
 
 const DrawerRoute = (props: any) => {
-  const name = 'Current Chat'
+  const { currentChat } = useAppSelector(conversationsControlState)
+  const { currentUser } = useAppSelector(authState)
+  const { isAuthLoading, isAuth } = useAppSelector(authState)
+  const { reloadCurrentUser } = authActions
+  const dispatch = useAppDispatch()
+  const [infoOfCurrentChat, setInfoForCurrentChat] =
+    useState<InfoOfCurrentChatType>({
+      title: '',
+      avatar: <></>,
+    })
+
+  useEffect(() => {
+    if (currentChat && currentUser) {
+      if (currentChat.type === ConversationTypeEnum.GROUP) {
+        setInfoForCurrentChat({
+          title: currentChat.title,
+          avatar: (
+            <GroupAvatar
+              groupName={currentChat.title}
+              groupAvatar={currentChat.avatar}
+              participants={currentChat.participantResponse}
+              size={20}
+            />
+          ),
+        })
+      }
+
+      if (currentChat.type === ConversationTypeEnum.SINGLE) {
+        let teammate = getTeammateInSingleConversation(currentUser, currentChat)
+
+        setInfoForCurrentChat({
+          title: teammate.user.fullName,
+          avatar: (
+            <UserAvatar
+              name={teammate.user.fullName}
+              avatar={teammate.user.avatar}
+              size={25}
+            />
+          ),
+        })
+      }
+    }
+  }, [currentChat])
+
+  useEffect(() => {
+    const payload: CheckAuthPayload = {
+      dispatch,
+      reloadUser: reloadCurrentUser,
+    }
+
+    dispatch(checkAuth(payload))
+  }, [isAuth])
+
+  if (isAuthLoading) {
+    return (
+      <View className='flex-1 bg-[#0e6f9c] flex justify-center items-center'>
+        <View>
+          <ActivityIndicator size={'large'} animating={true} color='white' />
+          <Text
+            style={{ fontFamily: BE_MEDIUM }}
+            className='text-lg text-white mt-3'
+          >
+            Đang xác thực...
+          </Text>
+        </View>
+      </View>
+    )
+  }
+
+  if (!isAuth) return props.navigation.navigate(DANG_NHAP)
 
   return (
     <Drawer.Navigator
@@ -80,17 +171,19 @@ const DrawerRoute = (props: any) => {
           drawerItemStyle: {
             display: 'none',
           },
-          title: DANH_SACH_TIN_NHAN,
+          title: infoOfCurrentChat.title,
           drawerLabel: () => null,
           drawerIcon: () => null,
           headerLeft: () => (
-            <IconButton
-              icon='keyboard-backspace'
-              color='white'
-              onPress={() => navigation.goBack()}
-            />
+            <View className='flex flex-row justify-start items-center'>
+              <IconButton
+                icon='keyboard-backspace'
+                color='white'
+                onPress={() => navigation.goBack()}
+              />
+              {infoOfCurrentChat.avatar}
+            </View>
           ),
-          // headerRight: () => <IconButton icon='magnify' onPress={() => {}} />,
         })}
       />
       <Drawer.Screen

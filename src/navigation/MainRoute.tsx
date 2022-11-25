@@ -16,7 +16,7 @@ import {
   DANG_NHAP,
   MAN_HINH_CHINH,
   QUEN_MAT_KHAU,
-  THEM_DANH_BA
+  THEM_DANH_BA,
 } from '../constants/RoutesName.constant'
 
 type Props = {}
@@ -27,7 +27,7 @@ const MainRoute = (props: Props) => {
   return (
     <NavigationContainer>
       <RootStack.Navigator
-        initialRouteName={DANG_NHAP}
+        initialRouteName={MAN_HINH_CHINH}
         screenOptions={{ headerShown: false }}
       >
         <RootStack.Screen name={DANG_NHAP} component={Login} />
@@ -35,7 +35,6 @@ const MainRoute = (props: Props) => {
         <RootStack.Screen name={QUEN_MAT_KHAU} component={ForgotPwd} />
         <RootStack.Screen name={MAN_HINH_CHINH} component={DrawerRoute} />
         <RootStack.Screen name={THEM_DANH_BA} component={AddContact} />
-
       </RootStack.Navigator>
     </NavigationContainer>
   )

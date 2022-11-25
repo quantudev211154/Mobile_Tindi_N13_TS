@@ -1,17 +1,21 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import SettingContent from '../components/setting/SettingContent'
 import { Avatar } from 'react-native-paper'
 import { BE_MEDIUM } from '../constants/FontConstant'
 import * as ImagePicker from 'expo-image-picker'
 import MyButton from '../components/core/MyButton'
+import { useAppSelector } from '../redux/redux_hook'
+import { authState } from '../redux/slice/AuthSlice'
+import { UserType } from '../types/UserTypes'
+import UserAvatar from '../components/core/UserAvatar'
+import { formatPhoneNumber } from '../utils/FormatUserInfo'
 
 type Props = {}
 
 const Setting = (props: Props) => {
-  const [selectedImage, setSelectedImage] = useState(
-    'https://cafefcdn.com/thumb_w/650/203337114487263232/2022/3/3/photo1646280815645-1646280816151764748403.jpg'
-  )
+  const { currentUser } = useAppSelector(authState)
+  const [selectedImage, setSelectedImage] = useState('')
 
   const changeAvatar = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -30,24 +34,21 @@ const Setting = (props: Props) => {
   return (
     <View className='flex-1 bg-gray-200'>
       <View className='w-full px-4 flex flex-row justify-start items-center py-5 bg-[#517da2]'>
-        <Avatar.Image
-          size={60}
-          source={{
-            uri: selectedImage,
-          }}
-        />
+        {currentUser && (
+          <UserAvatar name={currentUser.fullName} avatar={currentUser.avatar} />
+        )}
         <View className='flex flex-col justify-center items-start ml-5'>
           <Text
             style={{ fontFamily: BE_MEDIUM }}
             className='mr-2 text-xl text-white'
           >
-            Quan Tu
+            {currentUser && currentUser?.fullName}
           </Text>
           <Text
             style={{ fontFamily: BE_MEDIUM }}
             className='mr-2 text-sm text-white'
           >
-            0358.434.915
+            {currentUser && formatPhoneNumber(currentUser.phone)}
           </Text>
         </View>
       </View>

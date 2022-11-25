@@ -4,31 +4,39 @@ import {
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer'
-import { BE_BOLD, BE_MEDIUM, BE_SEMIBOLD } from '../../constants/FontConstant'
-import { Avatar } from 'react-native-paper'
+import { BE_MEDIUM } from '../../constants/FontConstant'
+import { useAppSelector } from '../../redux/redux_hook'
+import { authState } from '../../redux/slice/AuthSlice'
+import UserAvatar from '../core/UserAvatar'
+import { formatPhoneNumber } from '../../utils/FormatUserInfo'
+import { BASE_AVATAR } from '../../constants/AvatarConstant'
 
 const DrawerContents = (props: any) => {
+  const { currentUser } = useAppSelector(authState)
+
   return (
     <View className='flex-1'>
       <View className='h-44 px-8 pb-2 bg-[#517da2] flex flex-col justify-end'>
-        <Avatar.Image
-          size={70}
-          source={{
-            uri: 'https://cafefcdn.com/thumb_w/650/203337114487263232/2022/3/3/photo1646280815645-1646280816151764748403.jpg',
-          }}
-        />
+        {currentUser && (
+          <UserAvatar
+            size={BASE_AVATAR}
+            name={currentUser.fullName}
+            avatar={currentUser.avatar}
+          />
+        )}
+
         <View className='mt-2'>
           <Text
             style={{ fontFamily: BE_MEDIUM }}
             className='text-white text-lg'
           >
-            Quan Tu
+            {currentUser && currentUser.fullName}
           </Text>
           <Text
             style={{ fontFamily: BE_MEDIUM }}
             className='text-gray-200 text-[13px]'
           >
-            0358.434.915
+            {currentUser && formatPhoneNumber(currentUser.phone)}
           </Text>
         </View>
       </View>
