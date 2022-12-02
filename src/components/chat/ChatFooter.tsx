@@ -1,15 +1,7 @@
-import {
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputChangeEventData,
-  View,
-} from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, TextInput, View } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { IconButton } from 'react-native-paper'
 import { BE_REGULAR } from '../../constants/FontConstant'
-import { conversationDetailActions } from '../../apis/ConversationDetail'
 import { useAppDispatch, useAppSelector } from '../../redux/redux_hook'
 import {
   AttachFileTypeEnum,
@@ -17,39 +9,58 @@ import {
   MessageType,
   MessageTypeEnum,
 } from '../../types/MessageTypes'
-import { conversationsControlState } from './../../redux/slice/ConversationSlice'
+import {
+  conversationActions,
+  conversationsControlState,
+} from './../../redux/slice/ConversationSlice'
+import { authState } from '../../redux/slice/AuthSlice'
+import { UserType } from '../../types/UserTypes'
+import {
+  ParticipantStatusEnum,
+  ParticipantType,
+} from '../../types/ParticipantTypes'
+import { MySocket } from '../../services/TindiSocket'
 import {
   ConversationType,
   ConversationTypeEnum,
 } from '../../types/ConversationTypes'
-import { authState } from '../../redux/slice/AuthSlice'
-import { UserType } from '../../types/UserTypes'
-import { getTeammateInSingleConversation } from '../../utils/ConversationUtils'
-import { ParticipantType } from '../../types/ParticipantTypes'
-import { MySocket } from '../../services/TindiSocket'
+import { saveMessage } from '../../redux/thunks/MessageThunk'
 
 type Props = {}
 
 const ChatFooter = (props: Props) => {
-  const [textMessage, setTextMessage] = useState('')
-  const { currentChat } = useAppSelector(conversationsControlState)
+  const [msg, setMsg] = useState('')
+
+  const { currentChat, replyingMessage } = useAppSelector(
+    conversationsControlState
+  )
   const { currentUser } = useAppSelector(authState)
   const dispatch = useAppDispatch()
-  const { addNewMessageToCurrentChat } = conversationDetailActions
   const [files, setFiles] = useState<FileList | null>(null)
   const [attachFileType, setAttachFileType] = useState<
     AttachFileTypeEnum | undefined
   >(undefined)
+  const { addNewMessageToCurrentChat } = conversationActions
+  const [status, setStatus] = useState(ParticipantStatusEnum.STABLE)
 
-  const onSendMsg = () => {
-    if (textMessage !== '') {
+  useEffect(() => {
+    if (currentChat && currentUser) {
+      let currentParti = currentChat.participantResponse.find(
+        (parti) => parti.user.id === currentUser.id
+      )
+
+      if (currentParti !== undefined) setStatus(currentParti.status)
+    }
+  }, [currentChat])
+
+  const onSendMsg = (caption?: string) => {
+    if (currentChat && (files || msg !== '')) {
       const message: MessageType = {
         id: new Date().getTime(),
         conversation: currentChat as ConversationType,
         createdAt: new Date().toISOString(),
         delete: false,
-        revoke: false,
-        message: textMessage,
+        message: caption !== undefined ? caption : msg,
         sender: currentUser as UserType,
         status: MessageStatusEnum.SENT,
         type: files
@@ -60,27 +71,48 @@ const ChatFooter = (props: Props) => {
         attachmentResponseList: null,
         socketFlag: new Date().getTime().toString(),
         isLoading: files ? true : undefined,
+        replyTo: replyingMessage,
+        participantDeleted: [],
       }
 
-      let receiver: UserType[] = []
+      const receiver: UserType[] = currentChat.participantResponse.map(
+        (parti) => parti.user
+      )
 
-      if (currentChat?.type === ConversationTypeEnum.SINGLE) {
-        receiver.push(
-          getTeammateInSingleConversation(
-            currentUser as UserType,
-            currentChat as ConversationType
-          ).user
-        )
-      } else {
-        for (let iterator of currentChat?.participantResponse as ParticipantType[]) {
-          receiver.push(iterator.user)
-        }
-      }
-
-      MySocket.sendMessage({ message, to: receiver })
+      MySocket.sendMessage({
+        message,
+        to: receiver,
+      })
 
       dispatch(addNewMessageToCurrentChat(message))
-      setTextMessage('')
+
+      const formData = new FormData()
+      formData.append('conversationId', message.conversation.id.toString())
+      formData.append('senderId', message.sender.id.toString())
+      formData.append('messageType', message.type.toString())
+      formData.append('message', message.message)
+
+      if (replyingMessage) {
+        formData.append('replyTo', replyingMessage.id as string)
+      }
+
+      // if (files) {
+      //   for (const iterator of files) formData.append('file', iterator)
+      // }
+
+      dispatch(
+        saveMessage({
+          formData,
+          socketFlag: message.socketFlag as string,
+          to: receiver,
+        })
+      )
+
+      setMsg('')
+
+      // dispatch(setReplyingMessage(null))
+
+      setFiles(null)
     }
   }
 
@@ -89,13 +121,13 @@ const ChatFooter = (props: Props) => {
       <TextInput
         multiline
         placeholder='Viết tin nhắn...'
-        value={textMessage}
-        onChangeText={(newText) => setTextMessage(newText)}
+        value={msg}
+        onChangeText={(newText) => setMsg(newText)}
         style={{ fontFamily: BE_REGULAR }}
         className='flex-1 pl-3 bg-white text-[17px]'
       />
       <View
-        style={{ display: textMessage === '' ? 'flex' : 'none' }}
+        style={{ display: msg === '' ? 'flex' : 'none' }}
         className='flex-initial flex flex-row justify-end items-center'
       >
         <IconButton
@@ -112,7 +144,7 @@ const ChatFooter = (props: Props) => {
         />
       </View>
       <View
-        style={{ display: textMessage === '' ? 'none' : 'flex' }}
+        style={{ display: msg === '' ? 'none' : 'flex' }}
         className='flex-initial'
       >
         <IconButton

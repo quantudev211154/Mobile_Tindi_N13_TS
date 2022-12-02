@@ -1,12 +1,19 @@
 import { StyleSheet, Text, View, Image } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import { MessageType, MessageTypeEnum } from '../../types/MessageTypes'
+import React, { useEffect, useRef } from 'react'
+import {
+  AttachFileTypeEnum,
+  MessageType,
+  MessageTypeEnum,
+} from '../../types/MessageTypes'
 import { useAppSelector } from '../../redux/redux_hook'
 import { authState } from '../../redux/slice/AuthSlice'
 import { BE_REGULAR } from '../../constants/FontConstant'
-import { parseDate } from '../../utils/ParseDate'
 import UserAvatar from '../core/UserAvatar'
-import { conversationDetailState } from './../../apis/ConversationDetail'
+import { conversationsControlState } from '../../redux/slice/ConversationSlice'
+import { parseDateByHourAndMinutes } from '../../utils/DateUtils'
+import DateDivider from './DateDivider'
+import { findNextMessage, getTypeOfAttachment } from '../../utils/MessageUtils'
+import { IconButton } from 'react-native-paper'
 
 type Props = {
   message: MessageType
@@ -14,73 +21,107 @@ type Props = {
 
 const Message = ({ message }: Props) => {
   const { currentUser } = useAppSelector(authState)
-  const { messageList } = useAppSelector(conversationDetailState)
-  const [showAvatar, setShowAvatar] = useState(true)
+  const { messageList } = useAppSelector(conversationsControlState)
+  const avatarRef = useRef<View>(null)
+
+  const updateOpacityOfAvatar = () => {
+    if (
+      avatarRef.current &&
+      findNextMessage(message, messageList)?.sender.id === message.sender.id
+    ) {
+      avatarRef.current.setNativeProps({
+        style: {
+          opacity: 0,
+        },
+      })
+    }
+  }
 
   useEffect(() => {
-    const nextMessage = messageList.find(
-      (msg) => msg.id > message.id && msg.delete === false
-    )
-
-    if (
-      nextMessage !== undefined &&
-      nextMessage.sender.id === message.sender.id
-    ) {
-      setShowAvatar(false)
-    } else {
-      setShowAvatar(true)
-    }
+    updateOpacityOfAvatar()
   }, [messageList])
 
   return (
-    <View
-      style={{
-        justifyContent:
-          currentUser && currentUser.id === message.sender.id
-            ? 'flex-end'
-            : 'flex-start',
-      }}
-      className='py-1 flex flex-row justify-end items-end'
-    >
-      {currentUser && showAvatar && currentUser.id !== message.sender.id ? (
-        <UserAvatar
-          name={message.sender.fullName}
-          avatar={message.sender.avatar}
-          size={25}
-        />
-      ) : (
-        <View style={{ width: 25 }}></View>
-      )}
+    <>
+      <DateDivider item={message} />
       <View
         style={{
-          backgroundColor:
+          display:
+            currentUser &&
+            !!message.participantDeleted.find(
+              (parti) => parti.user.id === currentUser.id
+            )
+              ? 'none'
+              : 'flex',
+          justifyContent:
             currentUser && currentUser.id === message.sender.id
-              ? '#eeffde'
-              : 'white',
-          marginLeft:
-            currentUser && currentUser.id !== message.sender.id ? 2 : 0,
+              ? 'flex-end'
+              : 'flex-start',
         }}
-        className='w-fix min-w-[20%] max-w-[80%] rounded-md p-2 pb-3 relative'
+        className='py-1 flex flex-row justify-end items-end'
       >
-        {message.type === MessageTypeEnum.TEXT ? (
-          <Text>{message.message}</Text>
+        {currentUser && currentUser.id !== message.sender.id ? (
+          <View ref={avatarRef}>
+            <UserAvatar
+              name={message.sender.fullName}
+              avatar={message.sender.avatar}
+              size={25}
+            />
+          </View>
         ) : (
-          <></>
+          <View style={{ width: 25 }}></View>
         )}
-        {message.type === MessageTypeEnum.IMAGE ? (
-          message.attachmentResponseList?.map((item) => (
-            <Image key={item.id} source={{ uri: item.fileUrl }} />
-          ))
-        ) : (
-          <></>
-        )}
-        <View className='absolute bottom-[0.05px] right-[2px]'>
-          <Text style={{ fontFamily: BE_REGULAR, fontSize: 9 }}>
-            {parseDate(message.createdAt)}
-          </Text>
+        <View
+          style={{
+            backgroundColor:
+              currentUser && currentUser.id === message.sender.id
+                ? '#eeffde'
+                : 'white',
+            marginLeft:
+              currentUser && currentUser.id !== message.sender.id ? 2 : 0,
+          }}
+          className='w-fix min-w-[20%] max-w-[80%] rounded-md p-2 pb-3 relative'
+        >
+          {message.attachmentResponseList?.map((item) => {
+            if (getTypeOfAttachment(item) === AttachFileTypeEnum.IMAGE) {
+              return (
+                <Image
+                  className='w-28 h-28 object-cover rounded-md'
+                  key={item.id}
+                  source={{ uri: item.fileUrl }}
+                />
+              )
+            } else {
+              return (
+                <View
+                  key={item.id}
+                  className={`flex flex-col justify-center items-center p-3 rounded-2xl bg-slate-500 cursor-pointer ${
+                    message.message === '' &&
+                    message.attachmentResponseList?.length === 1
+                      ? 'pb-3'
+                      : 'pb-2'
+                  }`}
+                >
+                  <IconButton icon='file-outline' size={30} color='white' />
+                  <Text
+                    style={{ fontFamily: BE_REGULAR }}
+                    className='text-gray-100 whitespace-pre-wrap overflow-hidden text-ellipsis break-all'
+                  >
+                    {item.thumbnail}
+                  </Text>
+                </View>
+              )
+            }
+          })}
+          {message.message !== '' ? <Text>{message.message}</Text> : <></>}
+          <View className='absolute bottom-[0.05px] right-[2px]'>
+            <Text style={{ fontFamily: BE_REGULAR, fontSize: 9 }}>
+              {parseDateByHourAndMinutes(message.createdAt)}
+            </Text>
+          </View>
         </View>
       </View>
-    </View>
+    </>
   )
 }
 

@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit'
-import ConversationDetail from '../apis/ConversationDetail'
 import AuthSlice from './slice/AuthSlice'
 import ContextMenuSlice from './slice/ContextMenuSlice'
 import ConversationSlice from './slice/ConversationSlice'
@@ -9,7 +8,6 @@ export const store = configureStore({
     auth: AuthSlice,
     conversation: ConversationSlice,
     context: ContextMenuSlice,
-    converDetail: ConversationDetail,
   },
 })
 

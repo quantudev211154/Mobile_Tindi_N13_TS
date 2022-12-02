@@ -20,7 +20,7 @@ const UserAvatar = ({ name, avatar, size }: Props) => {
           size={size}
           label={formatUserFullname(name)}
           color='white'
-          labelStyle={{ fontFamily: BE_MEDIUM, fontSize: 30 }}
+          labelStyle={{ fontFamily: BE_MEDIUM, fontSize: size / 1.6 }}
         />
       ) : (
         <Avatar.Image

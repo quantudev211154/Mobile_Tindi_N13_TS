@@ -66,7 +66,6 @@ class JWTManager {
 
       return data.user
     } catch (error) {
-      console.log(error)
       this.deleteToken()
 
       return false

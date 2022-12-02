@@ -44,9 +44,7 @@ const LoginForm = (props: any) => {
         await AsyncStorage.setItem(LOCAL_REFRESH_TOKEN_NAME, data.refreshToken)
         MySocket.initTindiSocket(data.userId)
         props.navigation.push(MAN_HINH_CHINH)
-      } catch (error) {
-        console.log(error)
-      }
+      } catch (error) {}
     },
     onError: () => {
       dispatch(loginRejected())
@@ -75,9 +73,10 @@ const LoginForm = (props: any) => {
         pwd: yup.string().required('Đừng để trống mật khẩu'),
       })}
     >
-      {({ handleChange, handleBlur, handleSubmit, values, errors }) => (
+      {({ handleChange, handleSubmit, values, errors }) => (
         <View className='w-full pb-5'>
           <TextInput
+            error={errors.phone ? true : false}
             style={styles.textInput}
             keyboardType='numeric'
             maxLength={10}
@@ -89,6 +88,7 @@ const LoginForm = (props: any) => {
           />
           <FormErrorDisplay msg={errors.phone} />
           <TextInput
+            error={errors.pwd ? true : false}
             style={styles.textInput}
             label='Mật khẩu'
             mode='outlined'

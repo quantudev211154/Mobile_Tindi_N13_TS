@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_LOGIN } from '../constants/APIConstant'
+import { API_LOGIN, HOST } from '../constants/APIConstant'
 import { LoginPayloadType, LoginThunkReturnType } from '../types/AuthTypes'
 import http from '../utils/Http'
 

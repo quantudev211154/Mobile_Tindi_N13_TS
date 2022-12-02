@@ -27,17 +27,12 @@ import { authActions, authState } from '../redux/slice/AuthSlice'
 import { CheckAuthPayload } from '../types/AuthTypes'
 import { JWT } from '../utils/JWT'
 import { checkAuth } from '../redux/thunks/AuthThunk'
-import {
-  conversationActions,
-  conversationsControlState,
-} from '../redux/slice/ConversationSlice'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { loadConversationsListByCurrentUserId } from '../apis/Conversation.api'
-import { ConversationTypeEnum } from '../types/ConversationTypes'
+import { conversationsControlState } from '../redux/slice/ConversationSlice'
 import { getTeammateInSingleConversation } from '../utils/ConversationUtils'
 import GroupAvatar from '../components/core/GroupAvatar'
 import UserAvatar from '../components/core/UserAvatar'
 import { ParticipantType } from '../types/ParticipantTypes'
+import { ConversationTypeEnum } from '../types/ConversationTypes'
 
 type Props = {}
 
@@ -85,7 +80,7 @@ const DrawerRoute = (props: any) => {
             <UserAvatar
               name={teammate.user.fullName}
               avatar={teammate.user.avatar}
-              size={25}
+              size={40}
             />
           ),
         })

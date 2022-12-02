@@ -5,29 +5,33 @@ import {
   BE_REGULAR,
   BE_SEMIBOLD,
 } from '../../constants/FontConstant'
-import { ActivityIndicator, Avatar, TextInput } from 'react-native-paper'
-import { FlatList, ScrollView } from 'react-native-gesture-handler'
+import { ActivityIndicator } from 'react-native-paper'
+import { ScrollView } from 'react-native-gesture-handler'
 import { DANH_SACH_TIN_NHAN } from '../../constants/RoutesName.constant'
 import { useAppDispatch, useAppSelector } from '../../redux/redux_hook'
 import { authState } from '../../redux/slice/AuthSlice'
-import { useQuery } from '@tanstack/react-query'
-import { loadConversationsListByCurrentUserId } from '../../apis/Conversation.api'
 import { conversationActions } from '../../redux/slice/ConversationSlice'
-import {
-  ConversationType,
-  ConversationTypeEnum,
-} from '../../types/ConversationTypes'
 import UserAvatar from '../core/UserAvatar'
 import { getTeammateInSingleConversation } from '../../utils/ConversationUtils'
 import GroupAvatar from '../core/GroupAvatar'
 import { BASE_AVATAR } from '../../constants/AvatarConstant'
-import { conversationDetailActions } from '../../apis/ConversationDetail'
 import { MySocket } from '../../services/TindiSocket'
 import {
   SendMessageWithSocketPayload,
   SocketEventEnum,
 } from '../../constants/SocketConstant'
 import { conversationsControlState } from './../../redux/slice/ConversationSlice'
+import {
+  ConversationType,
+  ConversationTypeEnum,
+} from '../../types/ConversationTypes'
+import {
+  loadConversations,
+  deleteConversation as deleteConversationThunk,
+} from '../../redux/thunks/ConversationThunk'
+import { ParticipantRoleEnum } from '../../types/ParticipantTypes'
+import { loadMessageOfConversation } from '../../redux/thunks/MessageThunk'
+import { MessageTypeEnum } from '../../types/MessageTypes'
 
 type Props = {
   navigation: any
@@ -35,18 +39,27 @@ type Props = {
 
 export default function ConversationContent({ navigation }: Props) {
   const { currentUser } = useAppSelector(authState)
-  const { currentChat } = useAppSelector(conversationsControlState)
+  const { currentChat, isLoadingChatList, conversationList } = useAppSelector(
+    conversationsControlState
+  )
   const dispatch = useAppDispatch()
-  const { loadConversation, changeCurrentChat } = conversationActions
-  const { addNewMessageToCurrentChat } = conversationDetailActions
+  const {
+    changeCurrentChat,
+    addNewConversation,
+    addMoreMembersToConversation,
+    changeRoleOfParticipant,
+    changeConversationInfo,
+    revokeMessage,
+    updateMessageBySocketFlag,
+    addNewMessageToCurrentChat,
+    deleteConversation,
+    updateStatusForParticipant,
+    clearMessageList,
+  } = conversationActions
 
-  const { data, isLoading, isSuccess } = useQuery({
-    queryKey: ['loadConvers', currentUser],
-    queryFn: () =>
-      currentUser && loadConversationsListByCurrentUserId(currentUser.id),
-  })
-
-  if (isSuccess && data) dispatch(loadConversation(data.data))
+  useEffect(() => {
+    if (currentUser) dispatch(loadConversations(currentUser.id))
+  }, [currentUser])
 
   useEffect(() => {
     initSocketAction()
@@ -59,9 +72,85 @@ export default function ConversationContent({ navigation }: Props) {
         dispatch(addNewMessageToCurrentChat(data.message))
       }
     )
+
+    MySocket.getTindiSocket()?.on(SocketEventEnum.REVOKE_MSG, (data: any) => {
+      dispatch(revokeMessage(data.message))
+    })
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_MSG,
+      (data: SendMessageWithSocketPayload) => {
+        dispatch(updateMessageBySocketFlag(data.message))
+      }
+    )
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_MEMBERS,
+      (data: any) => {
+        dispatch(
+          addMoreMembersToConversation([data.conversation, data.participants])
+        )
+      }
+    )
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_CONVERLIST_AFTER_CREATE,
+      (data: any) => {
+        dispatch(addNewConversation(data.newConver))
+      }
+    )
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_CONVERLIST_AFTER_DELETE,
+      (data: any) => {
+        dispatch(deleteConversation(data.conversation))
+        dispatch(deleteConversationThunk(data.conversation.id))
+
+        const deleteConverAdmin = (
+          data.conversation as ConversationType
+        ).participantResponse.find(
+          (parti) => parti.role === ParticipantRoleEnum.ADMIN
+        )
+      }
+    )
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_STATUS_FOR_PARTICIPANT,
+      (data: any) => {
+        dispatch(
+          updateStatusForParticipant([data.conversation, data.to, data.status])
+        )
+      }
+    )
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_CONVERLIST_AFTER_CHANGE_ROLE,
+      (data: any) => {
+        dispatch(
+          changeRoleOfParticipant([
+            data.conversation,
+            data.participant,
+            data.role,
+          ])
+        )
+      }
+    )
+
+    MySocket.getTindiSocket()?.on(
+      SocketEventEnum.UPDATE_CONVER_AFTER_CHANGE_INFO,
+      (data: any) => {
+        dispatch(
+          changeConversationInfo([
+            data.conversation,
+            data.avatar,
+            data.groupName,
+          ])
+        )
+      }
+    )
   }
 
-  if (isLoading)
+  if (isLoadingChatList)
     return (
       <View className='flex-1 justify-center items-center'>
         <View>
@@ -78,11 +167,13 @@ export default function ConversationContent({ navigation }: Props) {
 
   return (
     <ScrollView className='flex-1 flex flex-col'>
-      {data?.data.map((item) => (
+      {conversationList.map((item) => (
         <TouchableOpacity
           key={item.id}
           onPress={() => {
+            dispatch(clearMessageList())
             dispatch(changeCurrentChat(item))
+            dispatch(loadMessageOfConversation(item.id))
             navigation.navigate(DANH_SACH_TIN_NHAN)
           }}
           className='w-full px-2 py-1 h-[73px]'
@@ -110,12 +201,28 @@ export default function ConversationContent({ navigation }: Props) {
               <Text style={{ fontFamily: BE_SEMIBOLD }} className='text-[16px]'>
                 {item.title}
               </Text>
-              <Text
-                style={{ fontFamily: BE_REGULAR }}
-                className='text-gray-500'
-              >
-                {item.messageLatest ? item.messageLatest.message : ''}
-              </Text>
+              <View className='flex flex-row justify-start items-center'>
+                <Text
+                  style={{ fontFamily: BE_REGULAR }}
+                  className='text-gray-500'
+                >
+                  {item.messageLatest?.sender.id === currentUser?.id
+                    ? 'Bạn: '
+                    : `${item.messageLatest?.sender.fullName}: `}
+                </Text>
+                <Text
+                  style={{ fontFamily: BE_REGULAR }}
+                  className='text-gray-500'
+                >
+                  {item.messageLatest
+                    ? item.messageLatest.type === MessageTypeEnum.TEXT
+                      ? item.messageLatest.message
+                      : item.messageLatest.type === MessageTypeEnum.IMAGE
+                      ? 'Ảnh'
+                      : 'File'
+                    : ''}
+                </Text>
+              </View>
             </View>
           </View>
         </TouchableOpacity>

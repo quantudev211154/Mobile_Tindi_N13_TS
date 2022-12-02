@@ -1,13 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import SettingContent from '../components/setting/SettingContent'
-import { Avatar } from 'react-native-paper'
+import React, { useState } from 'react'
 import { BE_MEDIUM } from '../constants/FontConstant'
 import * as ImagePicker from 'expo-image-picker'
 import MyButton from '../components/core/MyButton'
 import { useAppSelector } from '../redux/redux_hook'
 import { authState } from '../redux/slice/AuthSlice'
-import { UserType } from '../types/UserTypes'
 import UserAvatar from '../components/core/UserAvatar'
 import { formatPhoneNumber } from '../utils/FormatUserInfo'
 
@@ -27,7 +24,6 @@ const Setting = (props: Props) => {
     if (!result.cancelled) {
       setSelectedImage(result.uri)
     } else {
-      console.log('User outted image picker')
     }
   }
 
@@ -35,7 +31,11 @@ const Setting = (props: Props) => {
     <View className='flex-1 bg-gray-200'>
       <View className='w-full px-4 flex flex-row justify-start items-center py-5 bg-[#517da2]'>
         {currentUser && (
-          <UserAvatar name={currentUser.fullName} avatar={currentUser.avatar} />
+          <UserAvatar
+            name={currentUser.fullName}
+            avatar={currentUser.avatar}
+            size={70}
+          />
         )}
         <View className='flex flex-col justify-center items-start ml-5'>
           <Text

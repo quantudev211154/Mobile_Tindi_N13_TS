@@ -35,6 +35,11 @@ export const CONVERSATION_DETAIL_FORWARD_MESSAGE =
   CONVERSATION_DETAIL_NAME + '/forward'
 export const CONVERSATION_DETAIL_REVOKE_MESSAGE =
   CONVERSATION_DETAIL_NAME + '/revokeMessage'
+export const CONVERSATION_DETAIL_DELETE_MESSAGE =
+  CONVERSATION_DETAIL_NAME + '/deleteMessage'
+
+export const USER_SLICE_NAME = 'userSlice'
+export const USER_UPDATE_PROFILE = USER_SLICE_NAME + '/updateProfile'
 
 export const FIREBASE_AUTH_NAME = 'firebaseAuth'
 
@@ -43,3 +48,5 @@ export const SOCKET_SLICE_NAME = 'socket'
 export const MESSAGE_CONTEXT_MENU_NAME = 'msgContextMenu'
 
 export const RESPONSIVE = 'RESPONSIVE'
+
+export const FILE_VIEWER_SLICE_NAME = 'FILE_VIEWER_SLICE'
